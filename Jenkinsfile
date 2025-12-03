@@ -2,13 +2,11 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "chandrakanth44/myapp"
-        REGISTRY_CREDENTIALS = "dockerhub-cred"
         REGISTRY_URL = "index.docker.io/v1/"
+        IMAGE_NAME = "chandrakanth44/myapp"
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -18,8 +16,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building myapp Docker image..."
-                    dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
+                    echo "Building Docker image..."
+                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
                 }
             }
         }
@@ -27,31 +25,23 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    echo "Pushing myapp image to Docker Hub..."
-                    docker.withRegistry("${REGISTRY_URL}", "${REGISTRY_CREDENTIALS}") {
-                        dockerImage.push("${BUILD_NUMBER}")
-                        dockerImage.push("latest")
+                    echo 'Pushing Docker image to Docker Hub...'
+
+                    docker.withRegistry("https://${REGISTRY_URL}", "docker-cred") {
+                        sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
                     }
                 }
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                sh """
-                  docker rmi ${IMAGE_NAME}:${BUILD_NUMBER} || true
-                  docker rmi ${IMAGE_NAME}:latest || true
-                """
             }
         }
     }
 
     post {
-        success {
-            echo "Image pushed successfully: ${IMAGE_NAME}:${BUILD_NUMBER}"
-        }
         failure {
             echo "Build failed!"
         }
+        success {
+            echo "Build succeeded! Image pushed."
+        }
     }
 }
+
