@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "chandrakanth44/myapp"
         REGISTRY_CREDENTIALS = "dockerhub-cred"
-        REGISTRY_URL = ""
+        REGISTRY_URL = "index.docker.io/v1/"
     }
 
     stages {
